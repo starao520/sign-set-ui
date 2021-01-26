@@ -121,7 +121,7 @@ export default {
     // 七牛云配置
     doConfig() {
       const _this = this.$refs.form
-      _this.init()
+      // _this.init()
       _this.dialog = true
     },
     handleSuccess(response, file, fileList) {
