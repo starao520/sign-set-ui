@@ -14,15 +14,17 @@
         </el-col>
       </el-row>
     </el-header>
-    <el-main>
+    <el-main class="elMain">
       <el-row :gutter="10">
         <el-col v-for="(item, index) in imageList" :key="index" :span="4">
           <el-image :src="item.url" style="height: 500px;" fit="fill" />
         </el-col>
       </el-row>
     </el-main>
-    <el-footer>
-      <div>我是尾巴</div>
+    <el-footer style="text-align: center;">
+      <div>
+        Copyright © 2020 - 2021
+      </div>
     </el-footer>
   </el-container>
 </template>
@@ -49,12 +51,13 @@ export default {
     }
   },
   created() {
-    document.onkeydown = function() {
-      const e = window.event || arguments[0]
-      if (e.keyCode === 123) {
-        return false
-      }
-    }
+    //  禁用F12
+    // document.onkeydown = function() {
+    //   const e = window.event || arguments[0]
+    //   if (e.keyCode === 123) {
+    //     return false
+    //   }
+    // }
   }
 }
 </script>
@@ -62,14 +65,32 @@ export default {
 <style scoped lang="scss">
 
   .body {
-    /*padding-left: 10px;*/
-    /*padding-right: 10px;*/
+    height: calc(100vh);
+
     background-color: rgba(201,214,234, 0.3);
+
+  }
+
+  .elMain {
+    overflow: hidden;
+    scrollbar-width: none;
+    overflow-y: overlay;
+
   }
 
   .el-header {
     background-color: rgba(201,214,234, 0.5);
     height: 50px!important;
     line-height: 50px;
+  }
+
+  .el-footer {
+    background-color: rgba(201,214,234, 0.5);
+    height: 30px!important;
+    line-height: 30px;
+  }
+
+  *::-webkit-scrollbar {
+    display: none;
   }
 </style>
