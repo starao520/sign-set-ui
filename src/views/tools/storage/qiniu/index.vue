@@ -46,7 +46,7 @@
         </div>
       </el-dialog>
       <!--表格渲染-->
-      <el-table ref="table" v-loading="crud.loading" :data="crud.data" style="width: 100%;" @selection-change="crud.selectionChangeHandler">
+      <el-table ref="table" :data="fileData" style="width: 100%;" @selection-change="crud.selectionChangeHandler">
         <el-table-column type="selection" width="55" />
         <el-table-column prop="name" :show-overflow-tooltip="true" label="文件名">
           <template slot-scope="scope">
@@ -73,6 +73,7 @@
 import crudQiNiu from '@/api/tools/qiniu'
 import { mapGetters } from 'vuex'
 import { getToken } from '@/utils/auth'
+import { getFileList } from '@/api/tools/qiniu'
 import eForm from './form'
 import CRUD, { presenter, header, crud } from '@crud/crud'
 import rrOperation from '@crud/RR.operation'
@@ -88,6 +89,7 @@ export default {
   mixins: [presenter(), header(), crud()],
   data() {
     return {
+      fileData: [],
       permission: {
         del: ['admin', 'storage:del']
       },
@@ -117,11 +119,19 @@ export default {
     this.crud.optShow.add = false
     this.crud.optShow.edit = false
   },
+  mounted() {
+    this.queryFileList()
+  },
   methods: {
+    //  查询文件列表
+    queryFileList() {
+      getFileList().then(res => {
+        this.fileData = res.content
+      })
+    },
     // 七牛云配置
     doConfig() {
       const _this = this.$refs.form
-      // _this.init()
       _this.dialog = true
     },
     handleSuccess(response, file, fileList) {

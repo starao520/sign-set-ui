@@ -7,6 +7,18 @@ export function get() {
   })
 }
 
+/**
+ * 分页查询文件列表
+ * @param params
+ */
+export function getFileList(params) {
+  return request({
+    url: 'api/qiNiuContent',
+    method: 'get',
+    params
+  })
+}
+
 export function update(data) {
   return request({
     url: 'api/qiNiuContent/config',
