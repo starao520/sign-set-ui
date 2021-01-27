@@ -62,11 +62,6 @@ export default {
     }
   },
   methods: {
-    // init() {
-    //   get().then(res => {
-    //     this.qiniuForm = res
-    //   })
-    // },
     doSubmit() {
       this.$refs['qiniuform'].validate((valid) => {
         if (valid) {

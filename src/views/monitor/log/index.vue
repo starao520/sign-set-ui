@@ -2,12 +2,12 @@
   <div class="app-container">
     <div class="head-container">
       <el-input v-model="searchForm.blurry" clearable size="small" placeholder="请输入你要搜索的内容" style="width: 200px;" class="filter-item" />
-      <date-range-picker class="date-item" @change="selectDate" />
+      <date-range-picker v-model="createTime" class="date-item" @change="selectDate" />
       <el-button class="filter-item" size="mini" type="success" icon="el-icon-search" @click="queryLog">搜索</el-button>
       <el-button slot="left" class="filter-item" type="danger" icon="el-icon-delete" size="mini" @click="confirmDelAll()">清空</el-button>
     </div>
     <!--表格渲染-->
-    <el-table v-loading="loading" ref="table" :data="logData" style="width: 100%;">
+    <el-table ref="table" v-loading="loading" :data="logData" style="width: 100%;">
       <el-table-column type="expand">
         <template slot-scope="props">
           <el-form label-position="left" inline class="demo-table-expand">
@@ -64,7 +64,7 @@ export default {
       loading: false,
       searchForm: {
         blurry: '',
-        createTime: '',
+        createTime: [],
         page: 0,
         size: 10
       },

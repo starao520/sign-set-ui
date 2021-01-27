@@ -4,28 +4,12 @@
     <eForm ref="form" />
     <!-- 工具栏 -->
     <div class="head-container">
-      <div v-if="crud.props.searchToggle">
-        <!-- 搜索 -->
-        <el-input v-model="query.key" clearable size="small" placeholder="输入文件名称搜索" style="width: 200px;" class="filter-item" @keyup.enter.native="toQuery" />
-        <date-range-picker v-model="query.createTime" class="date-item" />
-        <rrOperation />
-      </div>
-      <crudOperation :permission="permission">
-        <template slot="left">
-          <!-- 上传 -->
-          <el-button class="filter-item" size="mini" type="primary" icon="el-icon-upload" @click="dialog = true">上传</el-button>
-          <!-- 同步 -->
-          <el-button :icon="icon" class="filter-item" size="mini" type="warning" @click="synchronize">同步</el-button>
-          <!-- 配置 -->
-          <el-button
-            class="filter-item"
-            size="mini"
-            type="success"
-            icon="el-icon-s-tools"
-            @click="doConfig"
-          >配置</el-button>
-        </template>
-      </crudOperation>
+      <el-input v-model="searchForm.key" clearable size="small" placeholder="输入文件名称搜索" style="width: 200px;" class="filter-item" @keyup.enter.native="queryFileList" />
+      <date-range-picker v-model="createTime" class="date-item" @change="selectDate" />
+      <el-button class="filter-item" size="mini" type="success" icon="el-icon-search" @click="queryFileList">搜索</el-button>
+      <el-button class="filter-item" size="mini" type="primary" icon="el-icon-upload" @click="dialog = true">上传</el-button>
+      <el-button class="filter-item" size="mini" type="success" icon="el-icon-s-tools" @click="doConfig">配置</el-button>
+      <el-button class="filter-item" size="mini" type="danger" icon="el-icon-delete" @click="delFiles">删除</el-button>
       <!-- 文件上传 -->
       <el-dialog :visible.sync="dialog" :close-on-click-modal="false" append-to-body width="500px" @close="doSubmit">
         <el-upload
@@ -46,50 +30,59 @@
         </div>
       </el-dialog>
       <!--表格渲染-->
-      <el-table ref="table" :data="fileData" style="width: 100%;" @selection-change="crud.selectionChangeHandler">
+      <el-table ref="table" :data="fileData" style="width: 100%;" @selection-change="selectionChangeHandler">
         <el-table-column type="selection" width="55" />
         <el-table-column prop="name" :show-overflow-tooltip="true" label="文件名">
           <template slot-scope="scope">
-            <a href="JavaScript:" class="el-link el-link--primary" target="_blank" type="primary" @click="download(scope.row.id)">{{ scope.row.name }}</a>
+            <a :href="scope.row.url" class="el-link el-link--primary" target="_blank" type="primary">{{ scope.row.realName }}</a>
           </template>
         </el-table-column>
-        <el-table-column :show-overflow-tooltip="true" prop="suffix" label="文件类型" @selection-change="crud.selectionChangeHandler" />
+        <el-table-column :show-overflow-tooltip="true" prop="suffix" label="文件类型" />
         <el-table-column prop="bucket" label="空间名称" />
         <el-table-column prop="size" label="文件大小" />
         <el-table-column prop="type" label="空间类型" />
-        <el-table-column prop="updateTime" label="创建日期">
+        <el-table-column prop="createTime" label="创建日期">
           <template slot-scope="scope">
-            <span>{{ parseTime(scope.row.updateTime) }}</span>
+            <span>{{ parseTime(scope.row.createTime) }}</span>
           </template>
         </el-table-column>
       </el-table>
       <!--分页组件-->
-      <pagination />
+      <el-pagination
+        :page-size.sync="searchForm.size"
+        :total="total"
+        :current-page.sync="searchForm.page + 1"
+        style="margin-top: 8px;"
+        layout="total, prev, pager, next, sizes"
+        @size-change="sizeChangeHandler"
+        @current-change="pageChangeHandler"
+      />
     </div>
   </div>
 </template>
 
 <script>
-import crudQiNiu from '@/api/tools/qiniu'
 import { mapGetters } from 'vuex'
 import { getToken } from '@/utils/auth'
-import { getFileList } from '@/api/tools/qiniu'
+import { getFileList, download, del, sync } from '@/api/tools/qiniu'
 import eForm from './form'
-import CRUD, { presenter, header, crud } from '@crud/crud'
-import rrOperation from '@crud/RR.operation'
-import crudOperation from '@crud/CRUD.operation'
-import pagination from '@crud/Pagination'
 import DateRangePicker from '@/components/DateRangePicker'
+import { parseTime } from '@/utils/index'
 
 export default {
-  components: { eForm, pagination, crudOperation, rrOperation, DateRangePicker },
-  cruds() {
-    return CRUD({ title: '七牛云文件', url: 'api/qiNiuContent', crudMethod: { ...crudQiNiu }})
-  },
-  mixins: [presenter(), header(), crud()],
+  components: { eForm, DateRangePicker },
   data() {
     return {
       fileData: [],
+      searchForm: {
+        key: '',
+        createTime: [],
+        page: 0,
+        size: 10
+      },
+      total: 0,
+      ids: [],
+      createTime: [],
       permission: {
         del: ['admin', 'storage:del']
       },
@@ -115,18 +108,16 @@ export default {
       }
     }
   },
-  created() {
-    this.crud.optShow.add = false
-    this.crud.optShow.edit = false
-  },
   mounted() {
     this.queryFileList()
   },
   methods: {
+    parseTime,
     //  查询文件列表
     queryFileList() {
-      getFileList().then(res => {
+      getFileList(this.searchForm).then(res => {
         this.fileData = res.content
+        this.total = res.totalElements
       })
     },
     // 七牛云配置
@@ -142,7 +133,7 @@ export default {
     handleBeforeRemove(file, fileList) {
       for (let i = 0; i < this.files.length; i++) {
         if (this.files[i].uid === file.uid) {
-          crudQiNiu.del([this.files[i].id]).then(res => {})
+          del([this.files[i].id]).then(res => {})
           return true
         }
       }
@@ -151,25 +142,33 @@ export default {
       this.dialogImageUrl = file.url
       this.dialogVisible = true
     },
+    selectionChangeHandler(val) {
+      this.ids = []
+      if (val) {
+        val.forEach((item) => {
+          this.ids.push(item.id)
+        })
+      }
+    },
     // 刷新列表数据
     doSubmit() {
       this.fileList = []
       this.dialogVisible = false
       this.dialogImageUrl = ''
       this.dialog = false
-      this.crud.toQuery()
+      this.queryFileList()
     },
     // 监听上传失败
     handleError(e, file, fileList) {
       const msg = JSON.parse(e.message)
-      this.crud.notify(msg.message, CRUD.NOTIFICATION_TYPE.ERROR)
+      this.$message.error(msg.message)
     },
     // 下载文件
     download(id) {
       this.downloadLoading = true
       // 先打开一个空的新窗口，再请求
       this.newWin = window.open()
-      crudQiNiu.download(id).then(res => {
+      download(id).then(res => {
         this.downloadLoading = false
         this.url = res.url
       }).catch(err => {
@@ -180,7 +179,7 @@ export default {
     // 同步数据
     synchronize() {
       this.icon = 'el-icon-loading'
-      crudQiNiu.sync().then(res => {
+      sync().then(res => {
         this.icon = 'el-icon-refresh'
         this.$message({
           showClose: true,
@@ -192,6 +191,36 @@ export default {
       }).catch(err => {
         this.icon = 'el-icon-refresh'
         console.log(err.response.data.message)
+      })
+    },
+    //  选择日期
+    selectDate(val) {
+      this.searchForm.createTime = val.toString()
+    },
+    //  改变每页条数
+    sizeChangeHandler(val) {
+      console.info('每页条数' + val)
+      this.searchForm.size = val
+      this.queryFileList()
+    },
+    //  改变当前页
+    pageChangeHandler(val) {
+      console.info('当前页码' + val)
+      this.searchForm.page = val - 1
+      this.queryFileList()
+    },
+    delFiles() {
+      this.$confirm('确认要删除选中文件?', '提示', {
+        confirmButtonText: '确认',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        del(this.ids).then(res => {
+          this.$message.success('删除成功')
+          this.queryFileList()
+        })
+      }).catch(() => {
+        this.$message.info('已取消')
       })
     }
   }
