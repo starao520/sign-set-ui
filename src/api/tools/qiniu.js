@@ -19,6 +19,18 @@ export function getFileList(params) {
   })
 }
 
+/**
+ * 访客分页查询文件列表
+ * @param params
+ */
+export function getVisitorFileList(params) {
+  return request({
+    url: 'api/qiNiuContent/visitor',
+    method: 'get',
+    params
+  })
+}
+
 export function update(data) {
   return request({
     url: 'api/qiNiuContent/config',

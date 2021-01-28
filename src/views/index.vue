@@ -7,8 +7,8 @@
         </el-col>
         <el-col :span="6">
           <div style="float: right;">
-            <el-button size="mini" type="success">最新</el-button>
-            <el-button size="mini" type="danger">最爱</el-button>
+            <el-button size="mini" type="success" @click="getNew">最新</el-button>
+            <el-button size="mini" type="danger" @click="getLove">最爱</el-button>
             <el-button size="mini" type="info" @click="aboutSystem">关于</el-button>
           </div>
         </el-col>
@@ -21,12 +21,21 @@
         </el-col>
         <el-image-viewer v-if="showImage" :on-close="closeViewer" :url-list="srcList" />
       </el-row>
+      <el-pagination
+        :page-size.sync="searchForm.size"
+        :total="total"
+        :current-page.sync="searchForm.page + 1"
+        style="margin-top: 8px;"
+        layout="total, prev, pager, next, sizes"
+        @size-change="sizeChangeHandler"
+        @current-change="pageChangeHandler"
+      />
     </el-main>
-    <el-footer style="text-align: center;">
-      <div>
-        Copyright © 2020 - 2021
-      </div>
-    </el-footer>
+    <!--    <el-footer style="text-align: center;">-->
+    <!--      <div>-->
+    <!--        Copyright © 2020 - 2021-->
+    <!--      </div>-->
+    <!--    </el-footer>-->
     <about ref="about" />
   </el-container>
 </template>
@@ -34,27 +43,22 @@
 <script>
 import ElImageViewer from 'element-ui/packages/image/src/image-viewer'
 import About from './visitor/about'
+
+import { getVisitorFileList } from '@/api/tools/qiniu'
+
 export default {
   name: 'Index',
   components: { ElImageViewer, About },
   data() {
     return {
-      imageList: [
-        { url: 'http://signset.facebook47.cn/微信读书061611738873184.jpg', name: '卡拉克穆尔' },
-        { url: 'http://signset.facebook47.cn/微信读书041611738873132.jpg', name: '卡拉克穆尔' },
-        { url: 'http://signset.facebook47.cn/微信读书011611738873400.jpg', name: '卡拉克穆尔' },
-        { url: 'http://signset.facebook47.cn/微信读书021611738873132.jpg', name: '卡拉克穆尔' },
-        { url: 'http://signset.facebook47.cn/微信读书051611738873796.jpg', name: '卡拉克穆尔' },
-        { url: 'http://signset.facebook47.cn/微信读书081611738873981.jpg', name: '卡拉克穆尔' },
-        { url: 'http://signset.facebook47.cn/微信读书071611738873684.jpg', name: '卡拉克穆尔' },
-        { url: 'http://signset.facebook47.cn/读书031611738893163.jpg', name: '卡拉克穆尔' },
-        { url: 'http://signset.facebook47.cn/微信读书021611738873132.jpg', name: '卡拉克穆尔' },
-        { url: 'http://signset.facebook47.cn/微信读书051611738873796.jpg', name: '卡拉克穆尔' },
-        { url: 'http://signset.facebook47.cn/微信读书081611738873981.jpg', name: '卡拉克穆尔' },
-        { url: 'http://signset.facebook47.cn/微信读书071611738873684.jpg', name: '卡拉克穆尔' }
-      ],
+      imageList: [],
       showImage: false,
-      srcList: []
+      srcList: [],
+      searchForm: {
+        page: 0,
+        size: 10
+      },
+      total: 0
     }
   },
   created() {
@@ -66,15 +70,21 @@ export default {
     //   }
     // }
   },
+  mounted() {
+    this.queryFileList()
+  },
   methods: {
+    queryFileList() {
+      getVisitorFileList().then(res => {
+        this.imageList = res.content
+        this.total = res.totalElements
+      })
+    },
     closeViewer() {
       this.showImage = false
     },
     showViewer() {
       this.showImage = true
-    },
-    showImageList() {
-      this.showViewer()
     },
     handleImgClick(index) {
       this.showImage = true
@@ -91,6 +101,25 @@ export default {
     aboutSystem() {
       const _this = this.$refs.about
       _this.dialogVisible = true
+    },
+    getNew() {
+      this.queryFileList()
+      this.$message.success('查询成功')
+    },
+    getLove() {
+      this.$message.info('敬请期待')
+    },
+    //  改变每页条数
+    sizeChangeHandler(val) {
+      console.info('每页条数' + val)
+      this.searchForm.size = val
+      this.queryFileList()
+    },
+    //  改变当前页
+    pageChangeHandler(val) {
+      console.info('当前页码' + val)
+      this.searchForm.page = val - 1
+      this.queryFileList()
     }
   }
 }
@@ -130,5 +159,27 @@ export default {
 
   ::v-deep  .el-icon-circle-close {
     color: white;
+  }
+
+  ::v-deep .el-pagination__sizes {
+    display: none!important;
+  }
+
+  ::v-deep .el-pagination {
+    text-align: center;
+  }
+
+  ::v-deep .btn-prev {
+    background-color: transparent!important;
+  }
+
+  ::v-deep .btn-next {
+    background-color: transparent!important;
+  }
+
+  ::v-deep .el-pager {
+    li {
+      background-color: transparent!important;
+    }
   }
 </style>
