@@ -2,10 +2,10 @@
   <el-container class="body" oncontextmenu="return false">
     <el-header>
       <el-row>
-        <el-col :span="18">
+        <el-col :span="4">
           <img src="../assets/images/logo.png" style="height: 48px;">
         </el-col>
-        <el-col :span="6">
+        <el-col :span="20">
           <div style="float: right;">
             <el-button size="mini" type="success" @click="getNew">最新</el-button>
             <el-button size="mini" type="danger" @click="getLove">最爱</el-button>
@@ -23,6 +23,7 @@
       </el-row>
       <el-pagination
         :page-size.sync="searchForm.size"
+        :page-sizes="[12, 24, 48, 96]"
         :total="total"
         :current-page.sync="searchForm.page + 1"
         style="margin-top: 8px;"
@@ -63,12 +64,12 @@ export default {
   },
   created() {
     //  禁用F12
-    // document.onkeydown = function() {
-    //   const e = window.event || arguments[0]
-    //   if (e.keyCode === 123) {
-    //     return false
-    //   }
-    // }
+    document.onkeydown = function() {
+      const e = window.event || arguments[0]
+      if (e.keyCode === 123) {
+        return false
+      }
+    }
   },
   mounted() {
     this.queryFileList()
