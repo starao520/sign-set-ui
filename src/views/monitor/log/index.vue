@@ -130,12 +130,5 @@ export default {
   width: 70px;
   color: #99a9bf;
 }
-.demo-table-expand .el-form-item {
-  margin-right: 0;
-  margin-bottom: 0;
-  width: 100%;
-}
-.demo-table-expand .el-form-item__content {
-  font-size: 12px;
-}
+
 </style>
