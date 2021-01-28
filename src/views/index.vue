@@ -14,7 +14,7 @@
         </el-col>
       </el-row>
     </el-header>
-    <el-main class="elMain">
+    <el-main v-loading="loading" element-loading-text="玩命加载中" class="elMain">
       <el-row :gutter="10">
         <el-col v-for="(item, index) in imageList" :key="index" :xs="12" :sm="8" :md="6" :lg="4" :xl="4">
           <el-image :src="item.url" style="height: 500px;cursor: pointer;" fit="fill" @click="handleImgClick(index)" />
@@ -54,6 +54,7 @@ export default {
     return {
       imageList: [],
       showImage: false,
+      loading: false,
       srcList: [],
       searchForm: {
         page: 0,
@@ -77,9 +78,11 @@ export default {
   methods: {
     queryFileList() {
       this.imageList = []
+      this.loading = true
       getVisitorFileList(this.searchForm).then(res => {
         this.imageList = res.content
         this.total = res.totalElements
+        this.loading = false
       })
     },
     closeViewer() {
