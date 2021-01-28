@@ -16,7 +16,7 @@
     </el-header>
     <el-main class="elMain">
       <el-row :gutter="10">
-        <el-col v-for="(item, index) in imageList" :key="index" :span="4">
+        <el-col v-for="(item, index) in imageList" :key="index" :xs="12" :sm="8" :md="6" :lg="4" :xl="4">
           <el-image :src="item.url" style="height: 500px;cursor: pointer;" fit="fill" @click="handleImgClick(index)" />
         </el-col>
         <el-image-viewer v-if="showImage" :on-close="closeViewer" :url-list="srcList" />
@@ -56,7 +56,7 @@ export default {
       srcList: [],
       searchForm: {
         page: 0,
-        size: 10
+        size: 12
       },
       total: 0
     }
@@ -75,7 +75,8 @@ export default {
   },
   methods: {
     queryFileList() {
-      getVisitorFileList().then(res => {
+      this.imageList = []
+      getVisitorFileList(this.searchForm).then(res => {
         this.imageList = res.content
         this.total = res.totalElements
       })
