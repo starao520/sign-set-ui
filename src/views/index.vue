@@ -80,8 +80,8 @@ export default {
       this.imageList = []
       this.loading = true
       getVisitorFileList(this.searchForm).then(res => {
-        this.imageList = res.content
-        this.total = res.totalElements
+        this.imageList = res.records
+        this.total = res.total
         this.loading = false
       })
     },
