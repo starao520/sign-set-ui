@@ -59,7 +59,8 @@ export default {
         password: '123456',
         rememberMe: false,
         code: '',
-        uuid: ''
+        uuid: '',
+        type: 'web'
       },
       loginRules: {
         username: [{ required: true, trigger: 'blur', message: '用户名不能为空' }],
